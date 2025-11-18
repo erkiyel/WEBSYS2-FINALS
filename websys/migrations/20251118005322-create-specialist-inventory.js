@@ -64,7 +64,6 @@ module.exports = {
       }
     });
 
-    // Add unique constraint to prevent duplicate scroll listings by same specialist
     await queryInterface.addIndex('SpecialistInventories', ['specialist_id', 'scroll_id'], {
       unique: true,
       name: 'specialist_scroll_unique'

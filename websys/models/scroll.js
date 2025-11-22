@@ -17,7 +17,9 @@ module.exports = (sequelize, DataTypes) => {
     scroll_name: DataTypes.STRING,
     description: DataTypes.TEXT,
     base_power: DataTypes.INTEGER,
-    rarity: DataTypes.ENUM
+    rarity: DataTypes.ENUM('Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'),
+      defaultValue: 'Common',
+      allowNull: false
   }, {
     sequelize,
     modelName: 'Scroll',

@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
     customer_id: DataTypes.INTEGER,
     order_date: DataTypes.DATE,
     total_amount: DataTypes.DECIMAL,
-    status: DataTypes.ENUM
+    status: DataTypes.ENUM('Pending', 'Completed', 'Cancelled'),
+      defaultValue: 'Pending'
   }, {
     sequelize,
     modelName: 'Order',

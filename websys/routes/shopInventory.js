@@ -1,19 +1,25 @@
+// Seller's shop inventory management
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
+const { Op } = require('sequelize');
 const { isAuthenticated } = require('../middleware/auth');
 const { isSeller } = require('../middleware/roles');
 
-// Get all shop inventory for Seller
+// Get all shop inventory
 router.get('/', isAuthenticated, isSeller, async (req, res) => {
   try {
+    const { rarity, element, search } = req.query;
+
     const inventory = await db.ShopInventory.findAll({
       include: [
         {
           model: db.Scroll,
+          where: search ? { scroll_name: { [Op.like]: `%${search}%` } } : undefined,
           include: [{
             model: db.Element,
-            through: { attributes: [] }
+            through: { attributes: [] },
+            where: element ? { element_name: element } : undefined
           }]
         },
         {
@@ -26,99 +32,54 @@ router.get('/', isAuthenticated, isSeller, async (req, res) => {
       ]
     });
 
-    res.json(inventory);
+    // Filter
+    let result = inventory;
+    if (rarity) {
+      result = inventory.filter(item => item.Scroll.rarity === rarity);
+    }
+
+    res.json(result);
   } catch (error) {
     console.error('Error fetching shop inventory:', error);
     res.status(500).json({ error: 'Error fetching shop inventory' });
   }
 });
 
-// Add item to shop inventory purchase from specialist
-router.post('/', isAuthenticated, isSeller, async (req, res) => {
+router.get('/:id', isAuthenticated, isSeller, async (req, res) => {
   try {
-    const { 
-      scroll_id, 
-      specialist_id, 
-      quantity, 
-      purchase_price, 
-      selling_price, 
-      quality_rating 
-    } = req.body;
-
-    // Validate required fields
-    if (!scroll_id || !specialist_id || !quantity || !purchase_price || !selling_price || !quality_rating) {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    // Check if specialist has enough stock
-    const specialistInventory = await db.SpecialistInventory.findOne({
-      where: { 
-        specialist_id, 
-        scroll_id 
-      }
-    });
-
-    if (!specialistInventory) {
-      return res.status(404).json({ error: 'Scroll not found in specialist inventory' });
-    }
-
-    if (specialistInventory.stock_quantity < quantity) {
-      return res.status(400).json({ 
-        error: 'Insufficient stock', 
-        available: specialistInventory.stock_quantity 
-      });
-    }
-
-    // Create or update shop inventory
-    const [shopItem, created] = await db.ShopInventory.findOrCreate({
-      where: { 
-        scroll_id, 
-        specialist_id 
-      },
-      defaults: {
-        quantity,
-        purchase_price,
-        selling_price,
-        quality_rating
-      }
-    });
-
-    if (!created) {
-      // Update existing item
-      shopItem.quantity += quantity;
-      shopItem.purchase_price = purchase_price;
-      shopItem.selling_price = selling_price;
-      shopItem.quality_rating = quality_rating;
-      await shopItem.save();
-    }
-
-    // Update specialist inventory
-    specialistInventory.stock_quantity -= quantity;
-    await specialistInventory.save();
-
-    // Fetch complete data
-    const updatedItem = await db.ShopInventory.findByPk(shopItem.shop_inventory_id, {
+    const item = await db.ShopInventory.findByPk(req.params.id, {
       include: [
-        { model: db.Scroll },
-        { model: db.Specialist }
+        {
+          model: db.Scroll,
+          include: [{
+            model: db.Element,
+            through: { attributes: [] }
+          }]
+        },
+        {
+          model: db.Specialist,
+          include: [
+            { model: db.User, attributes: ['username', 'email'] },
+            { model: db.Element, as: 'specialtyElement' }
+          ]
+        }
       ]
     });
 
-    res.status(201).json({
-      message: created ? 'Item added to shop inventory' : 'Shop inventory updated',
-      item: updatedItem
-    });
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
 
+    res.json(item);
   } catch (error) {
-    console.error('Error adding to shop inventory:', error);
-    res.status(500).json({ error: 'Error adding to shop inventory' });
+    console.error('Error fetching item:', error);
+    res.status(500).json({ error: 'Error fetching item' });
   }
 });
 
-// Update item
 router.put('/:id', isAuthenticated, isSeller, async (req, res) => {
   try {
-    const { selling_price, quantity } = req.body;
+    const { selling_price } = req.body;
     
     const item = await db.ShopInventory.findByPk(req.params.id);
     
@@ -127,11 +88,10 @@ router.put('/:id', isAuthenticated, isSeller, async (req, res) => {
     }
 
     if (selling_price !== undefined) {
+      if (selling_price <= 0) {
+        return res.status(400).json({ error: 'Selling price must be positive' });
+      }
       item.selling_price = selling_price;
-    }
-    
-    if (quantity !== undefined) {
-      item.quantity = quantity;
     }
 
     await item.save();
@@ -154,7 +114,6 @@ router.put('/:id', isAuthenticated, isSeller, async (req, res) => {
   }
 });
 
-// Delete item
 router.delete('/:id', isAuthenticated, isSeller, async (req, res) => {
   try {
     const item = await db.ShopInventory.findByPk(req.params.id);
@@ -163,13 +122,65 @@ router.delete('/:id', isAuthenticated, isSeller, async (req, res) => {
       return res.status(404).json({ error: 'Item not found' });
     }
 
+    const pendingOrders = await db.OrderItem.findAll({
+      where: { shop_inventory_id: item.shop_inventory_id },
+      include: [{
+        model: db.Order,
+        where: { status: 'Pending' }
+      }]
+    });
+
+    if (pendingOrders.length > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot remove item with pending customer orders' 
+      });
+    }
+
     await item.destroy();
 
-    res.json({ message: 'Item removed from shop inventory' });
+    res.json({ message: 'Item removed from shop listing' });
 
   } catch (error) {
     console.error('Error deleting shop inventory item:', error);
     res.status(500).json({ error: 'Error deleting item' });
+  }
+});
+
+// Get shop statistics (Seller dashboard)
+router.get('/stats/overview', isAuthenticated, isSeller, async (req, res) => {
+  try {
+    const totalItems = await db.ShopInventory.count();
+    
+    const stockSum = await db.ShopInventory.sum('quantity');
+    
+    const inventory = await db.ShopInventory.findAll();
+    const totalValue = inventory.reduce((sum, item) => {
+      return sum + (parseFloat(item.selling_price) * item.quantity);
+    }, 0);
+
+    const lowStock = await db.ShopInventory.findAll({
+      where: { quantity: { [Op.lt]: 5, [Op.gt]: 0 } },
+      include: [{ model: db.Scroll }]
+    });
+
+    const outOfStock = await db.ShopInventory.findAll({
+      where: { quantity: 0 },
+      include: [{ model: db.Scroll }]
+    });
+
+    res.json({
+      totalItems,
+      totalStock: stockSum || 0,
+      totalValue: totalValue.toFixed(2),
+      lowStockCount: lowStock.length,
+      outOfStockCount: outOfStock.length,
+      lowStockItems: lowStock,
+      outOfStockItems: outOfStock
+    });
+
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Error fetching statistics' });
   }
 });
 

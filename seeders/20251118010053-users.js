@@ -7,7 +7,7 @@ module.exports = {
       {
         username: 'admin_seller',
         email: 'seller@magicshop.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Seller',
         createdAt: new Date('2025-01-01'),
         updatedAt: new Date(),
@@ -16,7 +16,7 @@ module.exports = {
       {
         username: 'pyra_fire',
         email: 'pyra@firemage.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Specialist',
         createdAt: new Date('2025-01-02'),
         updatedAt: new Date()
@@ -24,7 +24,7 @@ module.exports = {
       {
         username: 'aquos_water',
         email: 'aquos@watermage.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Specialist',
         createdAt: new Date('2025-01-02'),
         updatedAt: new Date()
@@ -32,7 +32,7 @@ module.exports = {
       {
         username: 'terra_earth',
         email: 'terra@earthmage.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Specialist',
         createdAt: new Date('2025-01-02'),
         updatedAt: new Date()
@@ -40,7 +40,7 @@ module.exports = {
       {
         username: 'zephyr_air',
         email: 'zephyr@airmage.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Specialist',
         createdAt: new Date('2025-01-02'),
         updatedAt: new Date()
@@ -48,7 +48,7 @@ module.exports = {
       {
         username: 'alice_customer',
         email: 'alice@example.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Customer',
         createdAt: new Date('2025-01-05'),
         updatedAt: new Date()
@@ -56,7 +56,7 @@ module.exports = {
       {
         username: 'bob_customer',
         email: 'bob@example.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Customer',
         createdAt: new Date('2025-01-05'),
         updatedAt: new Date()
@@ -64,7 +64,7 @@ module.exports = {
       {
         username: 'charlie_customer',
         email: 'charlie@example.com',
-        password_hash: '$2b$10$abcdefghijklmnopqrstuvwxyz123456',
+        password_hash: '$2b$10$lIlIvCAdtaa9hnmeEyR93.qZXloOZSk9htX2svG1X3yRUufxousnu',
         role: 'Customer',
         createdAt: new Date('2025-01-06'),
         updatedAt: new Date()

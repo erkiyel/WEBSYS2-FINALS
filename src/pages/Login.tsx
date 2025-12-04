@@ -33,36 +33,69 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-center">Login</h2>
-        {error && <div className="text-red-600 text-center">{error}</div>}
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <input
-            name="username"
-            placeholder="Username"
-            required
-            className="w-full p-2 border rounded"
-            value={formData.username}
-            onChange={handleChange}
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            required
-            className="w-full p-2 border rounded"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-            Login
-          </button>
-        </form>
-        <div className="text-center">
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Don't have an account? Register
-          </Link>
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
+      <div className="card w-full max-w-md bg-base-100 shadow-xl">
+        <div className="card-body">
+          <h2 className="card-title text-3xl font-bold justify-center mb-6">
+            Magic Scrolls Shop
+          </h2>
+          
+          {error && (
+            <div className="alert alert-error">
+              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+          
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Username</legend>
+              <input
+                type="text"
+                name="username"
+                className="input input-bordered w-full"
+                placeholder="Enter your username"
+                required
+                value={formData.username}
+                onChange={handleChange}
+              />
+              <p className="label-text-alt">Required</p>
+            </fieldset>
+            
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Password</legend>
+              <input
+                type="password"
+                name="password"
+                className="input input-bordered w-full"
+                placeholder="Enter your password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+              />
+              <p className="label-text-alt">Required</p>
+            </fieldset>
+            
+            <div className="card-actions justify-center">
+              <button type="submit" className="btn btn-primary w-full">
+                Login
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
+          </form>
+          
+          <div className="divider">OR</div>
+          
+          <div className="text-center">
+            <p className="mb-2">Don't have an account?</p>
+            <Link to="/register" className="link link-info">
+              Register here
+            </Link>
+          </div>
         </div>
       </div>
     </div>

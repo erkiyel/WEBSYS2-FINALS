@@ -50,6 +50,7 @@ export const specialistsAPI = {
 
 export const scrollsAPI = {
   getAll: (params?: any) => api.get('/scrolls/shop/available', { params }),
+  getAllScrolls: (params?: any) => api.get('/scrolls', { params }),
   getFilters: () => api.get('/scrolls/filters/elements'),
   getRarities: () => api.get('/scrolls/filters/rarities'),
 };

@@ -18,13 +18,11 @@ export default function Register() {
     username: '',
     email: '',
     password: '',
-    role: 'Customer',
-    shop_name: '',
-    specialty_element_id: '',
-    contact_info: ''
+    role: 'Customer'
   });
   const [elements, setElements] = useState<Element[]>([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,196 +41,260 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     try {
-      let dataToSend: any = {
+      const dataToSend = {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        role: formData.role
+        role: formData.role,
+        ...(formData.role === 'Specialist' && {
+          shop_name: formData.shop_name,
+          specialty_element_id: formData.specialty_element_id,
+          contact_info: formData.contact_info
+        })
       };
-      
-      if (formData.role === 'Specialist') {
-        dataToSend.shop_name = formData.shop_name;
-        dataToSend.specialty_element_id = formData.specialty_element_id;
-        dataToSend.contact_info = formData.contact_info;
-      }
       
       const response = await authAPI.register(dataToSend);
       if (response.data.message === 'User registered successfully') {
-        navigate('/login');
+        navigate('/login', { state: { success: 'Account created successfully!' } });
       }
     } catch (error: any) {
       setError(error.response?.data?.error || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     
-    if (type === 'select-one') {
-      if (name === 'role' && value === 'Customer') {
-        setFormData({
-          ...formData,
-          [name]: value as 'Customer' | 'Specialist',
-          shop_name: '',
-          specialty_element_id: '',
-          contact_info: ''
-        });
-      } else {
-        setFormData({
-          ...formData,
-          [name]: value
-        });
-      }
+    if (name === 'role' && value === 'Customer') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        shop_name: '',
+        specialty_element_id: '',
+        contact_info: ''
+      }));
     } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
+  const roleBenefits = {
+    Customer: ['Browse magical scrolls', 'Purchase for your collection', 'Track order history'],
+    Specialist: ['Craft and sell scrolls', 'Manage your inventory', 'Set your prices']
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
-      <div className="card w-full max-w-lg bg-base-100 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title text-3xl font-bold justify-center mb-6">
-            Create Account
-          </h2>
-          
+    <div className="min-h-screen bg-base-200 flex items-center justify-center p-6" data-theme="luxury">
+      <div className="card w-full max-w-2xl bg-base-100 shadow-2xl">
+        <div className="card-body p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-4xl">✨</span>
+            </div>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              Join Magic Scrolls Shop
+            </h1>
+            <p className="text-base-content/70">Begin your magical journey</p>
+          </div>
+
+          {/* Error Alert */}
           {error && (
-            <div className="alert alert-error">
+            <div className="alert alert-error mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>{error}</span>
             </div>
           )}
-          
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Username</legend>
-              <input
-                name="username"
-                className="input input-bordered w-full"
-                placeholder="Choose a username"
-                required
-                value={formData.username}
-                onChange={handleChange}
-              />
-              <p className="label-text-alt">Required</p>
-            </fieldset>
-            
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Email</legend>
-              <input
-                name="email"
-                type="email"
-                className="input input-bordered w-full"
-                placeholder="your@email.com"
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
-              <p className="label-text-alt">Required</p>
-            </fieldset>
-            
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Password</legend>
-              <input
-                name="password"
-                type="password"
-                className="input input-bordered w-full"
-                placeholder="Minimum 6 characters"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={handleChange}
-              />
-              <p className="label-text-alt">Minimum 6 characters</p>
-            </fieldset>
-            
-            <fieldset className="fieldset">
-              <legend className="fieldset-legend">Account Type</legend>
-              <select
-                name="role"
-                className="select select-bordered w-full"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="Customer">Customer</option>
-                <option value="Specialist">Specialist</option>
-              </select>
-              <p className="label-text-alt">Choose your role</p>
-            </fieldset>
-            
-            {formData.role === 'Specialist' && (
-              <div className="space-y-4 p-4 border-2 border-primary/20 rounded-lg bg-base-200/50">
-                <h3 className="text-lg font-bold">Specialist Information</h3>
-                
-                <fieldset className="fieldset">
-                  <legend className="fieldset-legend">Shop Name</legend>
+
+          {/* Registration Form */}
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-primary">Account Information</h2>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Username</span>
+                  </label>
                   <input
-                    name="shop_name"
-                    className="input input-bordered w-full"
-                    placeholder="Your shop name"
+                    type="text"
+                    name="username"
+                    placeholder="Choose a username"
+                    className="input input-bordered input-primary w-full"
+                    value={formData.username}
+                    onChange={handleChange}
                     required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Email</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="your@email.com"
+                    className="input input-bordered input-primary w-full"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Password</span>
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="At least 6 characters"
+                  className="input input-bordered input-primary w-full"
+                  value={formData.password}
+                  onChange={handleChange}
+                  minLength={6}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            {/* Role Selection */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-primary">Select Your Role</h2>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                {(['Customer', 'Specialist'] as const).map((role) => (
+                  <div
+                    key={role}
+                    className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                      formData.role === role
+                        ? 'border-primary bg-primary/5'
+                        : 'border-base-300 hover:border-primary/50'
+                    }`}
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        role,
+                        ...(role === 'Customer' && {
+                          shop_name: '',
+                          specialty_element_id: '',
+                          contact_info: ''
+                        })
+                      }));
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        formData.role === role ? 'bg-primary' : 'bg-base-300'
+                      }`}></div>
+                      <span className="font-semibold">{role}</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-base-content/70">
+                      {roleBenefits[role].map((benefit, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <span className="text-primary">✓</span>
+                          {benefit}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Specialist Fields */}
+            {formData.role === 'Specialist' && (
+              <div className="space-y-6 pt-6 border-t border-base-300">
+                <h2 className="text-xl font-semibold text-primary">Specialist Details</h2>
+                
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Shop Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="shop_name"
+                    placeholder="Your shop name"
+                    className="input input-bordered input-primary w-full"
                     value={formData.shop_name || ''}
                     onChange={handleChange}
+                    required
+                    disabled={loading}
                   />
-                  <p className="label-text-alt">Required for specialists</p>
-                </fieldset>
-                
-                <fieldset className="fieldset">
-                  <legend className="fieldset-legend">Specialty Element</legend>
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Specialty Element</span>
+                  </label>
                   <select
                     name="specialty_element_id"
-                    className="select select-bordered w-full"
+                    className="select select-bordered select-primary w-full"
                     value={formData.specialty_element_id || ''}
                     onChange={handleChange}
+                    required
+                    disabled={loading}
                   >
-                    <option value="">Choose your specialty</option>
+                    <option value="">Select element</option>
                     {elements.map(element => (
                       <option key={element.element_id} value={element.element_id}>
                         {element.element_name}
                       </option>
                     ))}
                   </select>
-                  <p className="label-text-alt">Required for specialists</p>
-                </fieldset>
-                
-                <fieldset className="fieldset">
-                  <legend className="fieldset-legend">Contact Information</legend>
+                </div>
+
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold">Contact Information</span>
+                    <span className="label-text-alt">Optional</span>
+                  </label>
                   <input
+                    type="text"
                     name="contact_info"
-                    className="input input-bordered w-full"
-                    placeholder="Optional contact details"
+                    placeholder="How can we contact you?"
+                    className="input input-bordered input-primary w-full"
                     value={formData.contact_info || ''}
                     onChange={handleChange}
+                    disabled={loading}
                   />
-                  <p className="label-text-alt">Optional</p>
-                </fieldset>
+                </div>
               </div>
             )}
-            
-            <div className="card-actions justify-center mt-6">
-              <button type="submit" className="btn btn-success w-full">
-                Create Account
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
+
+            {/* Submit Button */}
+            <div className="form-control pt-6">
+              <button 
+                type="submit" 
+                className={`btn btn-primary w-full ${loading ? 'loading' : ''}`}
+                disabled={loading}
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
               </button>
             </div>
           </form>
-          
-          <div className="divider">OR</div>
-          
-          <div className="text-center">
-            <p className="mb-2">Already have an account?</p>
-            <Link to="/login" className="link link-info">
-              Login here
-            </Link>
+
+          {/* Login Link */}
+          <div className="mt-8 pt-6 border-t border-base-300 text-center">
+            <p className="text-base-content/70">
+              Already have an account?{' '}
+              <Link to="/login" className="link link-primary font-semibold">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

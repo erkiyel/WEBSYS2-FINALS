@@ -1,13 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Magic Scrolls Shop</title>
-</head>
-<body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div id="root"></div>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Magic Scrolls Shop - A magical scroll marketplace"
+    />
+    
+    <!-- DaisyUI CDN - THIS IS WHAT YOU NEED -->
+    <!-- Try this alternative CDN setup -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.css" rel="stylesheet" type="text/css" />
+    <script>
+      tailwind.config = {
+        daisyui: {
+          themes: [
+            {
+              mytheme: {
+                "primary": "#fbbf24",           // Amber-400
+                "secondary": "#8b5cf6",         // Violet-500
+                "accent": "#10b981",            // Emerald-500
+                "neutral": "#1f2937",           // Gray-800
+                "base-100": "#111827",          // Gray-900
+                "info": "#3b82f6",              // Blue-500
+                "success": "#10b981",           // Emerald-500
+                "warning": "#f59e0b",           // Amber-500
+                "error": "#ef4444",             // Red-500
+              },
+            },
+          ],
+        },
+      }
+    </script>
+    
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <title>Magic Scrolls Shop</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
 </html>

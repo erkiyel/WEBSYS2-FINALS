@@ -60,7 +60,6 @@ const dbMock = require('../../models');
 let app;
 
 beforeAll(() => {
-  // require app after mocks are in place
   app = require('../../server');
 });
 
@@ -82,14 +81,12 @@ describe('GET /api/users/profile', () => {
   });
 
   test('returns specialist profile with specialist data when role is Specialist', async () => {
-    // ensure middleware sets req.user.user_id=2 for this scenario
     dbMock.User.findByPk.mockResolvedValue(mockSpecialistUser);
     dbMock.Specialist.findOne.mockResolvedValue(mockSpecialist);
 
     const res = await request(app).get('/api/users/profile').set('x-test-user-id', '2');
 
     expect(res.status).toBe(200);
-    // should include specialist field
     expect(res.body.specialist).toEqual(mockSpecialist);
     expect(dbMock.User.findByPk).toHaveBeenCalledWith(2, {
       attributes: ['user_id', 'username', 'email', 'role', 'created_at']
@@ -118,7 +115,7 @@ describe('PUT /api/users/profile', () => {
     };
 
     dbMock.User.findByPk.mockResolvedValue(userInstance);
-    dbMock.User.findOne.mockResolvedValue(null); // no existing email
+    dbMock.User.findOne.mockResolvedValue(null);
 
     const res = await request(app)
       .put('/api/users/profile')

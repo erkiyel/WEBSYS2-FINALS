@@ -77,7 +77,6 @@ describe('Specialists routes', () => {
   });
 
   test('POST /api/specialists/me/inventory returns 400 for missing fields', async () => {
-    // middleware provides req.user; this endpoint should return 400 before DB lookup
     const res = await request(app).post('/api/specialists/me/inventory').set('x-test-role', 'Specialist').send({});
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('error');

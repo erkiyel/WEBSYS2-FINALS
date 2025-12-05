@@ -24,7 +24,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'SpecialistInventories',
-          key: 'inventory_id'
+          key: 'specialist_inventory_id'  // CHANGED: from 'inventory_id' to 'specialist_inventory_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'

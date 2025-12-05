@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       Specialist.belongsTo(models.User, { foreignKey: 'user_id' });
       Specialist.hasMany(models.SpecialistInventory, { foreignKey: 'specialist_id' });
       Specialist.hasMany(models.SellerOrder, { foreignKey: 'specialist_id' });
+      Specialist.hasMany(models.ShopInventory, { foreignKey: 'specialist_id' });
     }
   }
   Specialist.init({

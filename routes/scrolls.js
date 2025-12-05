@@ -82,7 +82,7 @@ router.get('/shop/available', async (req, res) => {
       };
     }
 
-    const availableScrolls = await db.ShopInventory.findAll({
+    const availableScrolls = await db.SpecialistInventory.findAll({
       where: inventoryWhere,
       include: [
         {

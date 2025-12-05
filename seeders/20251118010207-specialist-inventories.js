@@ -35,7 +35,7 @@ module.exports = {
         last_updated: new Date('2025-01-10'), createdAt: new Date(), updatedAt: new Date()
       },
       {
-        inventory_id: 7, specialist_id: 2, scroll_id: 6, stock_quantity: 40,
+        specialist_inventory_id: 7, specialist_id: 2, scroll_id: 6, stock_quantity: 40,
         source_price: 180.00, quality_rating: 9.00, is_specialty: true,
         last_updated: new Date('2025-01-10'), createdAt: new Date(), updatedAt: new Date()
       },

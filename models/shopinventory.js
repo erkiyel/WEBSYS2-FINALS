@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       ShopInventory.belongsTo(models.Scroll, { foreignKey: 'scroll_id' });
+      ShopInventory.belongsTo(models.Specialist, { foreignKey: 'specialist_id' }); 
       ShopInventory.hasMany(models.OrderItem, { foreignKey: 'shop_inventory_id' });
     }
   }

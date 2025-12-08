@@ -4,76 +4,8 @@ const db = require('../models');
 const { isAuthenticated } = require('../middleware/auth');
 const { isSpecialist, isSeller } = require('../middleware/roles');
 
-router.get('/', async (req, res) => {
-  try {
-    const specialists = await db.Specialist.findAll({
-      include: [
-        {
-          model: db.User,
-          attributes: ['username', 'email']
-        },
-        {
-          model: db.Element,
-          as: 'specialtyElement'
-        }
-      ]
-    });
-
-    res.json(specialists);
-  } catch (error) {
-    console.error('Error fetching specialists:', error);
-    res.status(500).json({ error: 'Error fetching specialists' });
-  }
-});
-
-router.get('/:id', async (req, res) => {
-  try {
-    const specialist = await db.Specialist.findByPk(req.params.id, {
-      include: [
-        {
-          model: db.User,
-          attributes: ['username', 'email']
-        },
-        {
-          model: db.Element,
-          as: 'specialtyElement'
-        }
-      ]
-    });
-
-    if (!specialist) {
-      return res.status(404).json({ error: 'Specialist not found' });
-    }
-
-    res.json(specialist);
-  } catch (error) {
-    console.error('Error fetching specialist:', error);
-    res.status(500).json({ error: 'Error fetching specialist' });
-  }
-});
-
-router.get('/:id/inventory', async (req, res) => {
-  try {
-    const inventory = await db.SpecialistInventory.findAll({
-      where: { 
-        specialist_id: req.params.id,
-        stock_quantity: { [db.sequelize.Sequelize.Op.gt]: 0 }
-      },
-      include: [{
-        model: db.Scroll,
-        include: [{
-          model: db.Element,
-          through: { attributes: [] }
-        }]
-      }]
-    });
-
-    res.json(inventory);
-  } catch (error) {
-    console.error('Error fetching specialist inventory:', error);
-    res.status(500).json({ error: 'Error fetching inventory' });
-  }
-});
+// ========== ALL /me ROUTES MUST COME FIRST ==========
+// These need to be before the /:id routes
 
 router.get('/me/profile', isAuthenticated, isSpecialist, async (req, res) => {
   try {
@@ -175,7 +107,7 @@ router.post('/me/inventory', isAuthenticated, isSpecialist, async (req, res) => 
       is_specialty: is_specialty || false
     });
 
-    const completeItem = await db.SpecialistInventory.findByPk(inventoryItem.inventory_id, {
+    const completeItem = await db.SpecialistInventory.findByPk(inventoryItem.specialist_inventory_id, {
       include: [{
         model: db.Scroll,
         include: [{ model: db.Element, through: { attributes: [] } }]
@@ -207,7 +139,7 @@ router.put('/me/inventory/:inventory_id', isAuthenticated, isSpecialist, async (
 
     const item = await db.SpecialistInventory.findOne({
       where: {
-        inventory_id: req.params.inventory_id,
+        specialist_inventory_id: req.params.inventory_id,
         specialist_id: specialist.specialist_id
       }
     });
@@ -224,7 +156,7 @@ router.put('/me/inventory/:inventory_id', isAuthenticated, isSpecialist, async (
 
     await item.save();
 
-    const updatedItem = await db.SpecialistInventory.findByPk(item.inventory_id, {
+    const updatedItem = await db.SpecialistInventory.findByPk(item.specialist_inventory_id, {
       include: [{
         model: db.Scroll,
         include: [{ model: db.Element, through: { attributes: [] } }]
@@ -260,7 +192,7 @@ router.put('/me/inventory/:inventory_id/add-stock', isAuthenticated, isSpecialis
 
     const item = await db.SpecialistInventory.findOne({
       where: {
-        inventory_id: req.params.inventory_id,
+        specialist_inventory_id: req.params.inventory_id,
         specialist_id: specialist.specialist_id
       }
     });
@@ -296,7 +228,7 @@ router.delete('/me/inventory/:inventory_id', isAuthenticated, isSpecialist, asyn
 
     const item = await db.SpecialistInventory.findOne({
       where: {
-        inventory_id: req.params.inventory_id,
+        specialist_inventory_id: req.params.inventory_id,
         specialist_id: specialist.specialist_id
       }
     });
@@ -306,7 +238,7 @@ router.delete('/me/inventory/:inventory_id', isAuthenticated, isSpecialist, asyn
     }
 
     const pendingOrders = await db.SellerOrderItem.findAll({
-      where: { inventory_id: item.inventory_id },
+      where: { inventory_id: item.specialist_inventory_id },
       include: [{
         model: db.SellerOrder,
         where: { status: 'Pending' }
@@ -326,6 +258,79 @@ router.delete('/me/inventory/:inventory_id', isAuthenticated, isSpecialist, asyn
   } catch (error) {
     console.error('Error removing inventory:', error);
     res.status(500).json({ error: 'Error removing inventory' });
+  }
+});
+
+// ========== THEN THE PUBLIC /:id ROUTES ==========
+
+router.get('/', async (req, res) => {
+  try {
+    const specialists = await db.Specialist.findAll({
+      include: [
+        {
+          model: db.User,
+          attributes: ['username', 'email']
+        },
+        {
+          model: db.Element,
+          as: 'specialtyElement'
+        }
+      ]
+    });
+
+    res.json(specialists);
+  } catch (error) {
+    console.error('Error fetching specialists:', error);
+    res.status(500).json({ error: 'Error fetching specialists' });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const specialist = await db.Specialist.findByPk(req.params.id, {
+      include: [
+        {
+          model: db.User,
+          attributes: ['username', 'email']
+        },
+        {
+          model: db.Element,
+          as: 'specialtyElement'
+        }
+      ]
+    });
+
+    if (!specialist) {
+      return res.status(404).json({ error: 'Specialist not found' });
+    }
+
+    res.json(specialist);
+  } catch (error) {
+    console.error('Error fetching specialist:', error);
+    res.status(500).json({ error: 'Error fetching specialist' });
+  }
+});
+
+router.get('/:id/inventory', async (req, res) => {
+  try {
+    const inventory = await db.SpecialistInventory.findAll({
+      where: { 
+        specialist_id: req.params.id,
+        stock_quantity: { [db.sequelize.Sequelize.Op.gt]: 0 }
+      },
+      include: [{
+        model: db.Scroll,
+        include: [{
+          model: db.Element,
+          through: { attributes: [] }
+        }]
+      }]
+    });
+
+    res.json(inventory);
+  } catch (error) {
+    console.error('Error fetching specialist inventory:', error);
+    res.status(500).json({ error: 'Error fetching inventory' });
   }
 });
 

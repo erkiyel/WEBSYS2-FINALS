@@ -13,7 +13,25 @@ let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  // Updated for PostgreSQL with SSL
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    {
+      host: config.host,
+      port: config.port || 5432,
+      dialect: config.dialect,
+      logging: config.logging || false,
+      dialectOptions: config.dialectOptions || {},
+      pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      }
+    }
+  );
 }
 
 fs

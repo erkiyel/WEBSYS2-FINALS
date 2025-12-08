@@ -4,28 +4,47 @@ const {
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Scroll extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      Scroll.belongsToMany(models.Element, { through: models.ScrollElement, foreignKey: 'scroll_id', otherKey: 'element_id' });
-      Scroll.hasMany(models.ShopInventory, { foreignKey: 'scroll_id' });
-      Scroll.hasMany(models.SpecialistInventory, { foreignKey: 'scroll_id' });
+      Scroll.belongsToMany(models.Element, { 
+        through: models.ScrollElement, 
+        foreignKey: 'scroll_id', 
+        otherKey: 'element_id' 
+      });
+      Scroll.hasMany(models.ShopInventory, { 
+        foreignKey: 'scroll_id' 
+      });
+      Scroll.hasMany(models.SpecialistInventory, { 
+        foreignKey: 'scroll_id' 
+      });
     }
   }
   Scroll.init({
-    scroll_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    scroll_name: { type: DataTypes.STRING, allowNull: false },
+    scroll_id: { 
+      type: DataTypes.INTEGER, 
+      primaryKey: true, 
+      autoIncrement: true 
+    },
+    scroll_name: { 
+      type: DataTypes.STRING(255), 
+      allowNull: false 
+    },
     description: DataTypes.TEXT,
-    base_power: { type: DataTypes.INTEGER, allowNull: false },
-    rarity: { type: DataTypes.ENUM('Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'), allowNull: false, defaultValue: 'Common' }
+    base_power: { 
+      type: DataTypes.INTEGER, 
+      allowNull: false 
+    },
+    rarity: { 
+      type: DataTypes.ENUM('Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'), 
+      allowNull: false, 
+      defaultValue: 'Common' 
+    }
   }, {
     sequelize,
     modelName: 'Scroll',
-    tableName: 'Scrolls',
-    timestamps: true
+    tableName: 'scrolls',  // lowercase
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   });
   return Scroll;
 };

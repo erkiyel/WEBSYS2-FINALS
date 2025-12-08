@@ -21,15 +21,35 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
-    username: { type: DataTypes.STRING, allowNull: false, unique: true },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password_hash: { type: DataTypes.STRING, allowNull: false },
-    role: { type: DataTypes.ENUM('Customer', 'Specialist', 'Seller'), allowNull: false, defaultValue: 'Customer' }
+    username: { 
+      type: DataTypes.STRING(255), 
+      allowNull: false, 
+      unique: true 
+    },
+    email: { 
+      type: DataTypes.STRING(255), 
+      allowNull: false, 
+      unique: true,
+      validate: {
+        isEmail: true
+      }
+    },
+    password_hash: { 
+      type: DataTypes.STRING(255), 
+      allowNull: false 
+    },
+    role: { 
+      type: DataTypes.ENUM('Customer', 'Specialist', 'Seller'), 
+      allowNull: false, 
+      defaultValue: 'Customer' 
+    }
   }, {
     sequelize,
     modelName: 'User',
-    tableName: 'Users',
-    timestamps: true
+    tableName: 'users',  // Changed to lowercase for PostgreSQL
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   });
   return User;
 };

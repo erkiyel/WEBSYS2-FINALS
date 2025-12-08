@@ -44,20 +44,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// For Vercel, use a session store that works in serverless (or disable sessions)
-// Option 1: Use memory store (not recommended for production)
-// Option 2: Use a proper session store like Redis (recommended)
-// Option 3: Use JWT instead of sessions (best for serverless)
-
-// Simple session setup for Vercel (temporary)
+// For Vercel, sessions need special handling
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_key',
   resave: false,
   saveUninitialized: false,
   cookie: {
     maxAge: 24 * 60 * 60 * 1000,
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // For cross-site cookies
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 }));
 
@@ -111,8 +106,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ========== VERCEL SPECIFIC ==========
-// For Vercel, we export the app as a serverless function
+// ========== IMPORTANT: SINGLE EXPORT ==========
+// Export the Express app for Vercel serverless
+// ONLY ONE module.exports statement!
+
 module.exports = app;
 
 // Only listen locally if not on Vercel
@@ -120,5 +117,6 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`API available at: http://localhost:${PORT}`);
   });
 }

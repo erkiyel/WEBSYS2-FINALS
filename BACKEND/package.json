@@ -35,5 +35,8 @@
   },
   "jest": {
     "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@vercel/node": "^3.0.0"
   }
 }

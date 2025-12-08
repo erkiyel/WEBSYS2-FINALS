@@ -1,9 +1,19 @@
 import axios from 'axios';
 
+const BACKEND_URL = process.env.NODE_ENV === 'production'
+  ? 'https://websys2-i5zrtm1qw-erkiyels-projects.vercel.app'  // ⬅️ Change to your actual backend URL
+  : 'http://localhost:5000/api';
+
+console.log('Using backend URL:', BACKEND_URL); // Debug log
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: BACKEND_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  }
 });
+
 
 export const authAPI = {
   register: (data: any) => api.post('/auth/register', data),

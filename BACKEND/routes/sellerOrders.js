@@ -77,41 +77,56 @@ router.get('/:id', isAuthenticated, isSeller, async (req, res) => {
   }
 });
 
-// Create order to specialist (Seller only)
 router.post('/', isAuthenticated, isSeller, async (req, res) => {
   try {
+    console.log('=== ORDER CREATION START ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('User ID:', req.user.user_id);
+    
     const { specialist_id, items } = req.body;
-    // items: [{ inventory_id, quantity }]
-
+    
+    console.log('Specialist ID:', specialist_id);
+    console.log('Items:', JSON.stringify(items, null, 2));
+    
     if (!specialist_id || !items || items.length === 0) {
+      console.log('Missing required fields');
       return res.status(400).json({ error: 'Specialist ID and items are required' });
     }
 
     const specialist = await db.Specialist.findByPk(specialist_id);
     if (!specialist) {
+      console.log('Specialist not found:', specialist_id);
       return res.status(404).json({ error: 'Specialist not found' });
     }
+
+    console.log('Specialist found:', specialist.shop_name);
 
     let totalAmount = 0;
     const orderItems = [];
 
     for (const item of items) {
+      console.log('Processing item:', item);
+      
       const inventory = await db.SpecialistInventory.findOne({
         where: { 
-          inventory_id: item.inventory_id,
+          specialist_inventory_id: item.specialist_inventory_id,
           specialist_id: specialist_id
         }
       });
 
+      console.log('Inventory found:', inventory ? 'Yes' : 'No');
+
       if (!inventory) {
+        console.log('Inventory item not found:', item.specialist_inventory_id);
         return res.status(404).json({ 
-          error: `Inventory item ${item.inventory_id} not found for this specialist` 
+          error: `Inventory item ${item.specialist_inventory_id} not found for this specialist` 
         });
       }
 
       if (inventory.stock_quantity < item.quantity) {
+        console.log('Insufficient stock:', inventory.stock_quantity, '<', item.quantity);
         return res.status(400).json({ 
-          error: `Insufficient stock for item ${item.inventory_id}`,
+          error: `Insufficient stock for item ${item.specialist_inventory_id}`,
           available: inventory.stock_quantity
         });
       }
@@ -120,19 +135,25 @@ router.post('/', isAuthenticated, isSeller, async (req, res) => {
       totalAmount += itemTotal;
 
       orderItems.push({
-        inventory_id: item.inventory_id,
+        specialist_inventory_id: item.specialist_inventory_id,
         quantity: item.quantity,
         unit_price: inventory.source_price,
         quality_rating: inventory.quality_rating
       });
     }
 
+    console.log('Total amount:', totalAmount);
+    console.log('Order items to create:', orderItems);
+
     // Create order
     const order = await db.SellerOrder.create({
+      user_id: req.user.user_id,  // ADD THIS - you're missing user_id!
       specialist_id,
       total_amount: totalAmount,
       status: 'Pending'
     });
+
+    console.log('Order created:', order.seller_order_id);
 
     // Create order items
     for (const item of orderItems) {
@@ -155,14 +176,17 @@ router.post('/', isAuthenticated, isSeller, async (req, res) => {
       ]
     });
 
+    console.log('=== ORDER CREATION COMPLETE ===');
     res.status(201).json({
       message: 'Order placed successfully. Waiting for specialist approval.',
       order: completeOrder
     });
 
   } catch (error) {
-    console.error('Error creating seller order:', error);
-    res.status(500).json({ error: 'Error creating order' });
+    console.error('=== ORDER CREATION ERROR ===');
+    console.error('Error details:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Error creating order', details: error.message });
   }
 });
 
@@ -299,7 +323,7 @@ router.put('/specialist/my-orders/:id/approve', isAuthenticated, isSpecialist, a
       if (item.SpecialistInventory.stock_quantity < item.quantity) {
         return res.status(400).json({ 
           error: 'Insufficient stock to fulfill order',
-          item: item.inventory_id
+          item: item.specialist_inventory_id
         });
       }
     }

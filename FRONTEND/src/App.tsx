@@ -7,6 +7,7 @@ import Orders from './pages/seller/Orders';
 import PurchaseFromSpecialist from './pages/seller/PurchaseFromSpecialist';
 import SpecialistDashboard from './pages/specialist/SpecialistDashboard';
 import MyInventory from './pages/specialist/MyInventory';
+import SpecialistOrders from './pages/specialist/SpecialistOrders'; // ADD THIS IMPORT
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import BrowseScrolls from './pages/customer/BrowseScrolls';
 import MyOrders from './pages/customer/MyOrders';
@@ -53,6 +54,12 @@ function App() {
           <Route path="/specialist/inventory" element={
             <ProtectedRoute allowedRoles={['Specialist']}>
               <MyInventory />
+            </ProtectedRoute>
+          } />
+          {/* ADD THIS NEW ROUTE */}
+          <Route path="/specialist/orders" element={
+            <ProtectedRoute allowedRoles={['Specialist']}>
+              <SpecialistOrders />
             </ProtectedRoute>
           } />
           

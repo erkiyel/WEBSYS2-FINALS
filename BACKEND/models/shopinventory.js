@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   ShopInventory.init({
     shop_inventory_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     scroll_id: { type: DataTypes.INTEGER, allowNull: false },
+    specialist_id: { type: DataTypes.INTEGER, allowNull: true }, 
     quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     purchase_price: { type: DataTypes.DECIMAL(10,2), allowNull: false },
     selling_price: { type: DataTypes.DECIMAL(10,2), allowNull: false },

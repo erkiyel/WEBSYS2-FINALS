@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Element.belongsToMany(models.Scroll, { through: models.ScrollElement, foreignKey: 'element_id', otherKey: 'scroll_id' });
       Element.hasMany(models.Specialist, { foreignKey: 'specialty_element_id' });
+      Element.hasMany(models.Specialist, { 
+        foreignKey: 'specialty_element_id',
+        as: 'specialists'  // Optional but good for consistency
+      });
     }
   }
   Element.init({

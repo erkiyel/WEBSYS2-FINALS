@@ -39,32 +39,41 @@ export default function PurchaseFromSpecialist() {
 
   const handleAddItem = (item: any) => {
     setSelectedItems([...selectedItems, {
-      inventory_id: item.inventory_id,
+      specialist_inventory_id: item.specialist_inventory_id,  // CORRECTED FIELD NAME
       quantity: 1,
-      unit_price: item.source_price
+      unit_price: item.source_price,
+      scroll_name: item.Scroll.scroll_name  // ADD SCROLL NAME FOR DISPLAY
     }]);
   };
 
   const handleSubmitOrder = async () => {
-    if (!selectedSpecialist || selectedItems.length === 0) {
-      alert('Please select specialist and items');
-      return;
-    }
+  if (!selectedSpecialist || selectedItems.length === 0) {
+    alert('Please select specialist and items');
+    return;
+  }
 
-    try {
-      await sellerOrdersAPI.create({
-        specialist_id: selectedSpecialist.specialist_id,
-        items: selectedItems
-      });
-      alert('Order placed successfully');
-      setSelectedItems([]);
-    } catch (error) {
-      alert('Failed to place order');
-    }
+  const orderData = {
+    specialist_id: selectedSpecialist.specialist_id,
+    items: selectedItems
   };
 
+  console.log('Submitting order with data:', orderData);
+  console.log('Selected items details:', selectedItems);
+
+  try {
+    const response = await sellerOrdersAPI.create(orderData);
+    console.log('Order response:', response);
+    alert('Order placed successfully');
+    setSelectedItems([]);
+  } catch (error: any) {
+    console.error('Order submission error details:', error);
+    console.error('Error response:', error.response?.data);
+    alert('Failed to place order: ' + (error.response?.data?.error || error.message));
+  }
+};
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 p-6" data-theme="luxury">
       <button onClick={() => navigate('/seller')} className="mb-4 px-4 py-2 bg-gray-600 text-white rounded">
         Back to Dashboard
       </button>
@@ -93,7 +102,7 @@ export default function PurchaseFromSpecialist() {
           {selectedSpecialist ? (
             <div className="space-y-2">
               {inventory.map((item) => (
-                <div key={item.inventory_id} className="p-4 bg-white rounded shadow">
+                <div key={item.specialist_inventory_id} className="p-4 bg-white rounded shadow">
                   <h3 className="font-bold">{item.Scroll.scroll_name}</h3>
                   <p>Stock: {item.stock_quantity}</p>
                   <p>Price: ${item.source_price}</p>
@@ -117,8 +126,8 @@ export default function PurchaseFromSpecialist() {
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
           <div className="space-y-2">
             {selectedItems.map((item, index) => (
-              <div key={index} className="flex justify-between">
-                <span>Item {index + 1}</span>
+              <div key={`${item.specialist_inventory_id}-${index}`} className="flex justify-between">
+                <span>{item.scroll_name || `Item ${index + 1}`}</span>
                 <span>Qty: {item.quantity}</span>
                 <span>${item.unit_price}</span>
               </div>

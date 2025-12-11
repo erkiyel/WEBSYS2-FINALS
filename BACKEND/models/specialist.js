@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Specialist.belongsTo(models.User, { foreignKey: 'user_id' });
+       Specialist.belongsTo(models.Element, { 
+        foreignKey: 'specialty_element_id',
+        as: 'specialtyElement'
+      });
       Specialist.hasMany(models.SpecialistInventory, { foreignKey: 'specialist_id' });
       Specialist.hasMany(models.SellerOrder, { foreignKey: 'specialist_id' });
       Specialist.hasMany(models.ShopInventory, { foreignKey: 'specialist_id' });

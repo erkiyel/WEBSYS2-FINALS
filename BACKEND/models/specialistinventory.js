@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       SpecialistInventory.belongsTo(models.Specialist, { foreignKey: 'specialist_id' });
       SpecialistInventory.belongsTo(models.Scroll, { foreignKey: 'scroll_id' });
-      SpecialistInventory.hasMany(models.SellerOrderItem, { foreignKey: 'inventory_id' });;
+      SpecialistInventory.hasMany(models.SellerOrderItem, { foreignKey: 'specialist_inventory_id' });
     }
   }
   SpecialistInventory.init({

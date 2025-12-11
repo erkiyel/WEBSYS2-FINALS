@@ -31,6 +31,19 @@ export const sellerOrdersAPI = {
   getAll: (status?: string) => api.get(`/seller-orders${status ? `?status=${status}` : ''}`),
   create: (data: any) => api.post('/seller-orders', data),
   cancel: (id: number) => api.put(`/seller-orders/${id}/cancel`),
+
+  getSpecialistOrders: (status?: string) => api.get(`/seller-orders/specialist/my-orders${status ? `?status=${status}` : ''}`),
+  approveOrder: (id: number) => api.put(`/seller-orders/specialist/my-orders/${id}/approve`),
+  declineOrder: (id: number) => api.put(`/seller-orders/specialist/my-orders/${id}/decline`),
+  
+  // Optional: For backward compatibility
+  updateStatus: (id: number, action: 'approve' | 'decline') => {
+    if (action === 'approve') {
+      return api.put(`/seller-orders/specialist/my-orders/${id}/approve`);
+    } else {
+      return api.put(`/seller-orders/specialist/my-orders/${id}/decline`);
+    }
+  }
 };
 
 export const specialistsAPI = {
@@ -54,3 +67,4 @@ export const scrollsAPI = {
   getFilters: () => api.get('/scrolls/filters/elements'),
   getRarities: () => api.get('/scrolls/filters/rarities'),
 };
+

@@ -10,19 +10,41 @@ router.get('/', async (req, res) => {
       include: [
         {
           model: db.User,
-          attributes: ['username', 'email']
+          attributes: ['username', 'email', 'user_id']
         },
         {
           model: db.Element,
-          as: 'specialtyElement'
+          as: 'specialtyElement',
+          attributes: ['element_id', 'element_name']
         }
-      ]
+      ],
+      where: {
+        // Optionally add filtering if needed
+        // For example, only show specialists with shop names
+        shop_name: { [db.sequelize.Sequelize.Op.ne]: null }
+      }
     });
 
-    res.json(specialists);
+    // Format the response to ensure consistent structure
+    const formattedSpecialists = specialists.map(specialist => ({
+      specialist_id: specialist.specialist_id,
+      user_id: specialist.user_id,
+      shop_name: specialist.shop_name || 'Unnamed Shop',
+      shop_description: specialist.shop_description || '',
+      specialty_element_id: specialist.specialty_element_id,
+      created_at: specialist.created_at,
+      updated_at: specialist.updated_at,
+      User: specialist.User,
+      specialtyElement: specialist.specialtyElement
+    }));
+
+    res.json(formattedSpecialists);
   } catch (error) {
     console.error('Error fetching specialists:', error);
-    res.status(500).json({ error: 'Error fetching specialists' });
+    res.status(500).json({ 
+      error: 'Error fetching specialists',
+      details: error.message 
+    });
   }
 });
 
@@ -52,28 +74,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.get('/:id/inventory', async (req, res) => {
-  try {
-    const inventory = await db.SpecialistInventory.findAll({
-      where: { 
-        specialist_id: req.params.id,
-        stock_quantity: { [db.sequelize.Sequelize.Op.gt]: 0 }
-      },
-      include: [{
-        model: db.Scroll,
-        include: [{
-          model: db.Element,
-          through: { attributes: [] }
-        }]
-      }]
-    });
-
-    res.json(inventory);
-  } catch (error) {
-    console.error('Error fetching specialist inventory:', error);
-    res.status(500).json({ error: 'Error fetching inventory' });
-  }
-});
 
 router.get('/me/profile', isAuthenticated, isSpecialist, async (req, res) => {
   try {
@@ -120,6 +120,29 @@ router.get('/me/inventory', isAuthenticated, isSpecialist, async (req, res) => {
     res.json(inventory);
   } catch (error) {
     console.error('Error fetching inventory:', error);
+    res.status(500).json({ error: 'Error fetching inventory' });
+  }
+});
+
+router.get('/:id/inventory', async (req, res) => {
+  try {
+    const inventory = await db.SpecialistInventory.findAll({
+      where: { 
+        specialist_id: req.params.id,
+        stock_quantity: { [db.sequelize.Sequelize.Op.gt]: 0 }
+      },
+      include: [{
+        model: db.Scroll,
+        include: [{
+          model: db.Element,
+          through: { attributes: [] }
+        }]
+      }]
+    });
+
+    res.json(inventory);
+  } catch (error) {
+    console.error('Error fetching specialist inventory:', error);
     res.status(500).json({ error: 'Error fetching inventory' });
   }
 });

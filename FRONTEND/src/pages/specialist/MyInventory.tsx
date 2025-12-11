@@ -14,8 +14,8 @@ interface InventoryItem {
     Elements: Array<{ element_name: string }>;
   };
   stock_quantity: number;
-  source_price: number;
-  quality_rating: number;
+  source_price: string | number;
+  quality_rating: string | number;
   is_specialty: boolean;
   last_updated: string;
 }
@@ -61,7 +61,24 @@ export default function MyInventory() {
       console.error('Inventory error:', err.response?.data);
     }
   };
+  
+  // Helper function to safely convert to number
+  const toNumber = (value: string | number): number => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') return parseFloat(value) || 0;
+    return 0;
+  };
 
+  // Helper function to safely format price
+  const formatPrice = (price: string | number): string => {
+    return `$${toNumber(price).toFixed(2)}`;
+  };
+
+  // Helper function to safely format quality rating
+  const formatRating = (rating: string | number): string => {
+    return toNumber(rating).toFixed(1);
+  };
+  
   const loadAllScrolls = async () => {
     try {
       setLoadingScrolls(true);
@@ -84,81 +101,81 @@ export default function MyInventory() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  // Validation
-  if (!formData.scroll_id || !formData.stock_quantity || !formData.source_price || !formData.quality_rating) {
-    setError('All fields are required');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    // Check if scroll already exists in inventory
-    const scrollIdNum = parseInt(formData.scroll_id);
-    const existingItem = inventory.find(item => item.scroll_id === scrollIdNum);
-    
-    if (existingItem) {
-      // If exists, ask user if they want to add stock instead
-      const shouldAdd = window.confirm(
-        `Scroll "${selectedScroll?.scroll_name}" is already in your inventory (ID: ${existingItem.specialist_inventory_id}).\n\n` +
-        'Would you like to add stock to the existing item instead?'
-      );
-      
-      if (shouldAdd) {
-        // Add stock to existing item
-        await specialistsAPI.addStock(existingItem.specialist_inventory_id, { 
-          quantity: parseInt(formData.stock_quantity) 
-        });
-        
-        // Reset form
-        setFormData({
-          scroll_id: '',
-          stock_quantity: '',
-          source_price: '',
-          quality_rating: '',
-          is_specialty: false
-        });
-        setShowForm(false);
-        loadInventory();
-        setLoading(false);
-        return;
-      } else {
-        setError('This scroll is already in your inventory. Please select a different scroll or add stock to the existing one.');
-        setLoading(false);
-        return;
-      }
+    // Validation
+    if (!formData.scroll_id || !formData.stock_quantity || !formData.source_price || !formData.quality_rating) {
+      setError('All fields are required');
+      setLoading(false);
+      return;
     }
 
-    // If not exists, add new item
-    await specialistsAPI.addInventory({
-      scroll_id: scrollIdNum,
-      stock_quantity: parseInt(formData.stock_quantity),
-      source_price: parseFloat(formData.source_price),
-      quality_rating: parseFloat(formData.quality_rating),
-      is_specialty: formData.is_specialty
-    });
+    try {
+      // Check if scroll already exists in inventory
+      const scrollIdNum = parseInt(formData.scroll_id);
+      const existingItem = inventory.find(item => item.scroll_id === scrollIdNum);
+      
+      if (existingItem) {
+        // If exists, ask user if they want to add stock instead
+        const shouldAdd = window.confirm(
+          `Scroll "${selectedScroll?.scroll_name}" is already in your inventory (ID: ${existingItem.specialist_inventory_id}).\n\n` +
+          'Would you like to add stock to the existing item instead?'
+        );
+        
+        if (shouldAdd) {
+          // Add stock to existing item
+          await specialistsAPI.addStock(existingItem.specialist_inventory_id, { 
+            quantity: parseInt(formData.stock_quantity) 
+          });
+          
+          // Reset form
+          setFormData({
+            scroll_id: '',
+            stock_quantity: '',
+            source_price: '',
+            quality_rating: '',
+            is_specialty: false
+          });
+          setShowForm(false);
+          loadInventory();
+          setLoading(false);
+          return;
+        } else {
+          setError('This scroll is already in your inventory. Please select a different scroll or add stock to the existing one.');
+          setLoading(false);
+          return;
+        }
+      }
 
-    // Reset form
-    setFormData({
-      scroll_id: '',
-      stock_quantity: '',
-      source_price: '',
-      quality_rating: '',
-      is_specialty: false
-    });
-    setShowForm(false);
-    loadInventory();
-  } catch (err: any) {
-    const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to add item';
-    setError(errorMessage);
-    console.error('Add error:', err.response?.data);
-  } finally {
-    setLoading(false);
-  }
-};
+      // If not exists, add new item
+      await specialistsAPI.addInventory({
+        scroll_id: scrollIdNum,
+        stock_quantity: parseInt(formData.stock_quantity),
+        source_price: parseFloat(formData.source_price), // Ensure it's a number
+        quality_rating: parseFloat(formData.quality_rating), // Ensure it's a number
+        is_specialty: formData.is_specialty
+      });
+
+      // Reset form
+      setFormData({
+        scroll_id: '',
+        stock_quantity: '',
+        source_price: '',
+        quality_rating: '',
+        is_specialty: false
+      });
+      setShowForm(false);
+      loadInventory();
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to add item';
+      setError(errorMessage);
+      console.error('Add error:', err.response?.data);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddStock = async (id: number) => {
     const quantity = prompt('How many to add?');
@@ -209,7 +226,7 @@ export default function MyInventory() {
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text">
                 My Inventory
               </h1>
               <p className="text-base-content/70 mt-2">Manage your magical scroll collection</p>
@@ -330,9 +347,9 @@ export default function MyInventory() {
                         step="0.5"
                         value={formData.quality_rating || 5}
                         onChange={(e) => setFormData({...formData, quality_rating: e.target.value})}
-                        className="range range-xs range-primary"
+                        className="range range-xs range-primary bg-primary/20"  /* Changed from range-primary to just range */
                       />
-                      <div className="w-full flex justify-between text-xs px-2">
+                      <div className="w-full flex justify-between text-xs px-2 text-base-content/70">
                         <span>0</span>
                         <span>5</span>
                         <span>10</span>
@@ -397,34 +414,34 @@ export default function MyInventory() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
               </svg>
             </div>
-            <div className="stat-title">Unique Scrolls</div>
-            <div className="stat-value text-primary">{inventory.length}</div>
+            <div className="stat-title text-base-content">Scrolls</div>
+            <div className="stat-value text-primary">{new Set(inventory.map(item => item.scroll_id)).size}</div>
             <div className="stat-desc">Different scroll types</div>
           </div>
           
           <div className="stat">
-            <div className="stat-figure text-secondary">
+            <div className="stat-figure text-base-content">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
-            <div className="stat-title">Total Stock</div>
-            <div className="stat-value text-secondary">
+            <div className="stat-title text-base-content">Total Stock</div>
+            <div className="stat-value text-primary">
               {inventory.reduce((sum, item) => sum + item.stock_quantity, 0)}
             </div>
             <div className="stat-desc">Total units in stock</div>
           </div>
 
           <div className="stat">
-            <div className="stat-figure text-accent">
+            <div className="stat-figure text-primary">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
-            <div className="stat-title">Avg Quality</div>
-            <div className="stat-value text-accent">
+            <div className="stat-title text-base-content">Avg Quality</div>
+            <div className="stat-value text-primary">
               {inventory.length > 0 
-                ? (inventory.reduce((sum, item) => sum + item.quality_rating, 0) / inventory.length).toFixed(1)
+                ? (inventory.reduce((sum, item) => sum + toNumber(item.quality_rating), 0) / inventory.length).toFixed(1)
                 : '0.0'
               }
             </div>
@@ -515,27 +532,33 @@ export default function MyInventory() {
                         
                         <td>
                           <div className="text-2xl font-bold text-primary">
-                            ${item.source_price.toFixed(2)}
+                            {formatPrice(item.source_price)}
                           </div>
                           <div className="text-sm opacity-70">per unit</div>
                         </td>
                         
                         <td>
-                          <div className="flex items-center gap-3">
-                            <div className="rating rating-md">
-                              {[1,2,3,4,5].map((star) => (
-                                <input
-                                  key={star}
-                                  type="radio"
-                                  name={`rating-${item.specialist_inventory_id}`}
-                                  className="mask mask-star-2 bg-warning"
-                                  checked={Math.floor(item.quality_rating / 2) === star}
-                                  readOnly
-                                />
-                              ))}
+                          <div className="flex flex-col items-center gap-1">
+                            {/* 10-star rating visualization */}
+                            <div className="flex items-center">
+                              {Array.from({ length: 10 }).map((_, index) => {
+                                const rating = toNumber(item.quality_rating);
+                                const isFilled = index < Math.round(rating);
+                                
+                                return (
+                                  <span 
+                                    key={index} 
+                                    className={`text-lg ${isFilled ? 'text-yellow-500' : 'text-gray-300'}`}
+                                  >
+                                    ★
+                                  </span>
+                                );
+                              })}
                             </div>
+                            
+                            {/* Numerical rating */}
                             <div>
-                              <div className="font-bold text-lg">{item.quality_rating.toFixed(1)}</div>
+                              <div className="font-bold text-lg">{formatRating(item.quality_rating)}</div>
                               <div className="text-xs opacity-70">out of 10</div>
                             </div>
                           </div>

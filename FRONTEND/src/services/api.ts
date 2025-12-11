@@ -21,10 +21,17 @@ export const shopInventoryAPI = {
 };
 
 export const ordersAPI = {
+  // For sellers to view customer orders
   getAll: (status?: string) => api.get(`/orders${status ? `?status=${status}` : ''}`),
   accept: (id: number) => api.put(`/orders/${id}/accept`),
   decline: (id: number) => api.put(`/orders/${id}/decline`),
   getDetail: (id: number) => api.get(`/orders/detail/${id}`),
+  
+  // ✅ ADD THESE for customers
+  getMyOrders: (status?: string) => api.get(`/orders/my-orders${status ? `?status=${status}` : ''}`),
+  getMyOrderDetail: (id: number) => api.get(`/orders/my-orders/${id}`),
+  cancelMyOrder: (id: number) => api.put(`/orders/my-orders/${id}/cancel`),
+  createOrder: (data: any) => api.post('/orders', data), // For placing new orders
 };
 
 export const sellerOrdersAPI = {

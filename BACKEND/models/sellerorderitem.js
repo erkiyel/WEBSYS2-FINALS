@@ -4,11 +4,6 @@ const {
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class SellerOrderItem extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
       SellerOrderItem.belongsTo(models.SellerOrder, { foreignKey: 'seller_order_id' });
       SellerOrderItem.belongsTo(models.SpecialistInventory, { foreignKey: 'specialist_inventory_id' });
@@ -19,7 +14,8 @@ module.exports = (sequelize, DataTypes) => {
     seller_order_id: { type: DataTypes.INTEGER, allowNull: false },
     specialist_inventory_id: { type: DataTypes.INTEGER, allowNull: false },
     quantity: { type: DataTypes.INTEGER, allowNull: false },
-    unit_price: { type: DataTypes.DECIMAL(10,2), allowNull: false }
+    unit_price: { type: DataTypes.DECIMAL(10,2), allowNull: false },
+    quality_rating: { type: DataTypes.DECIMAL(3,2), allowNull: true } // ADD THIS LINE
   }, {
     sequelize,
     modelName: 'SellerOrderItem',

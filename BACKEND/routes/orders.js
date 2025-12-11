@@ -149,13 +149,34 @@ router.put('/:id/decline', isAuthenticated, isSeller, async (req, res) => {
 
 router.get('/my-orders', isAuthenticated, async (req, res) => {
   try {
+    console.log('=== /my-orders called ===');
+    console.log('User ID from token:', req.user.user_id);
+    console.log('User role:', req.user.role);
+    
     const { status } = req.query;
     let whereClause = { customer_id: req.user.user_id };
     
     if (status) {
       whereClause.status = status;
     }
-
+    
+    console.log('WHERE clause:', whereClause);
+    
+    // First, count orders
+    const orderCount = await db.Order.count({
+      where: whereClause
+    });
+    console.log(`Found ${orderCount} orders for customer ${req.user.user_id}`);
+    
+    // Get all orders for debugging
+    const allOrders = await db.Order.findAll({
+      where: {},
+      attributes: ['order_id', 'customer_id', 'status'],
+      raw: true
+    });
+    console.log('All orders in database:', allOrders);
+    
+    // Now get the actual orders with includes
     const orders = await db.Order.findAll({
       where: whereClause,
       include: [{
@@ -167,7 +188,10 @@ router.get('/my-orders', isAuthenticated, async (req, res) => {
       }],
       order: [['order_date', 'DESC']]
     });
-
+    
+    console.log(`Returning ${orders.length} orders`);
+    console.log('First order (if any):', orders[0]?.toJSON());
+    
     res.json(orders);
   } catch (error) {
     console.error('Error fetching user orders:', error);

@@ -19,6 +19,16 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'RESTRICT'
       },
+      specialist_id: {  // ADD THIS NEW COLUMN
+        type: Sequelize.INTEGER,
+        allowNull: true,  // true for existing data compatibility
+        references: {
+          model: 'Specialists',
+          key: 'specialist_id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
       quantity: {
         type: Sequelize.INTEGER,
         allowNull: false,

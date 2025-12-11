@@ -63,78 +63,50 @@ router.get('/:id', async (req, res) => {
 
 router.get('/shop/available', async (req, res) => {
   try {
-    const { rarity, element, search, minPrice, maxPrice } = req.query;
-
-    let inventoryWhere = {
-      quantity: { [Op.gt]: 0 }
-    };
-
-    if (minPrice) {
-      inventoryWhere.selling_price = { 
-        ...inventoryWhere.selling_price,
-        [Op.gte]: parseFloat(minPrice) 
-      };
-    }
-    if (maxPrice) {
-      inventoryWhere.selling_price = { 
-        ...inventoryWhere.selling_price,
-        [Op.lte]: parseFloat(maxPrice) 
-      };
-    }
-
-    const availableScrolls = await db.SpecialistInventory.findAll({
-      where: inventoryWhere,
+    console.log('Getting available scrolls...');
+    
+    // Simple query without filters first
+    const availableScrolls = await db.ShopInventory.findAll({
+      where: { quantity: { [Op.gt]: 0 } },
       include: [
         {
           model: db.Scroll,
-          where: search ? { scroll_name: { [Op.like]: `%${search}%` } } : undefined,
           include: [{
             model: db.Element,
-            through: { attributes: [] },
-            where: element ? { element_name: element } : undefined
+            through: { attributes: [] }
           }]
         },
         {
           model: db.Specialist,
-          attributes: ['shop_name', 'reputation_rating'],
-          include: [{
-            model: db.Element,
-            as: 'specialtyElement',
-            attributes: ['element_name']
-          }]
+          attributes: ['shop_name']
         }
-      ]
+      ],
+      limit: 20
     });
-
-    let result = availableScrolls;
-    if (rarity) {
-      result = availableScrolls.filter(item => item.Scroll.rarity === rarity);
-    }
-
-    const formattedResult = result.map(item => ({
+    
+    console.log(`Found ${availableScrolls.length} items`);
+    
+    const formattedResult = availableScrolls.map(item => ({
       shop_inventory_id: item.shop_inventory_id,
       scroll: {
-        scroll_id: item.Scroll.scroll_id,
-        scroll_name: item.Scroll.scroll_name,
-        description: item.Scroll.description,
-        base_power: item.Scroll.base_power,
-        rarity: item.Scroll.rarity,
-        elements: item.Scroll.Elements.map(e => e.element_name)
+        scroll_name: item.Scroll?.scroll_name,
+        description: item.Scroll?.description,
+        rarity: item.Scroll?.rarity,
+        base_power: item.Scroll?.base_power,
+        elements: item.Scroll?.Elements?.map(e => e.element_name) || []
       },
       quantity_available: item.quantity,
       price: item.selling_price,
-      quality_rating: item.quality_rating,
       sourced_from: {
-        shop_name: item.Specialist.shop_name,
-        specialty: item.Specialist.specialtyElement?.element_name,
-        reputation: item.Specialist.reputation_rating
+        shop_name: item.Specialist?.shop_name || 'Unknown Shop'
       }
     }));
-
+    
     res.json(formattedResult);
+    
   } catch (error) {
-    console.error('Error fetching available scrolls:', error);
-    res.status(500).json({ error: 'Error fetching available scrolls' });
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Error fetching scrolls' });
   }
 });
 
@@ -158,7 +130,6 @@ router.get('/shop/available/:shop_inventory_id', async (req, res) => {
           attributes: ['shop_name', 'reputation_rating'],
           include: [{
             model: db.Element,
-            as: 'specialtyElement',
             attributes: ['element_name']
           }]
         }
@@ -188,7 +159,7 @@ router.get('/shop/available/:shop_inventory_id', async (req, res) => {
       quality_rating: item.quality_rating,
       sourced_from: {
         shop_name: item.Specialist.shop_name,
-        specialty: item.Specialist.specialtyElement?.element_name,
+        specialty: item.Specialist?.Element?.element_name,
         reputation: item.Specialist.reputation_rating
       }
     });

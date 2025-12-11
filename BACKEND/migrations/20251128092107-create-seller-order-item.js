@@ -24,7 +24,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'SpecialistInventories',
-          key: 'specialist_inventory_id'  // CHANGED: from 'inventory_id' to 'specialist_inventory_id'
+          key: 'specialist_inventory_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
@@ -36,6 +36,10 @@ module.exports = {
       unit_price: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false
+      },
+      quality_rating: {  // ADD THIS COLUMN
+        type: Sequelize.DECIMAL(3, 2),
+        allowNull: true  // Allow null for existing data
       },
       createdAt: {
         allowNull: false,

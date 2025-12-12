@@ -16,7 +16,7 @@ module.exports = {
       },
       {
         specialist_inventory_id: 3, specialist_id: 1, scroll_id: 11, stock_quantity: 5,
-        source_price: 2000.00, quality_rating: 10.00, is_specialty: true,
+        source_price: 2000.00, quality_rating: 9.99, is_specialty: true,
         last_updated: new Date('2025-01-10'), createdAt: new Date(), updatedAt: new Date()
       },
       {

@@ -24,6 +24,7 @@ router.get('/', isAuthenticated, isSeller, async (req, res) => {
         },
         {
           model: db.OrderItem,
+          as: 'OrderItems',
           include: [{
             model: db.ShopInventory,
             include: [{ model: db.Scroll }]
@@ -51,6 +52,7 @@ router.get('/detail/:id', isAuthenticated, isSeller, async (req, res) => {
         },
         {
           model: db.OrderItem,
+          as: 'OrderItems',
           include: [{
             model: db.ShopInventory,
             include: [
@@ -78,6 +80,7 @@ router.put('/:id/accept', isAuthenticated, isSeller, async (req, res) => {
     const order = await db.Order.findByPk(req.params.id, {
       include: [{
         model: db.OrderItem,
+        as: 'OrderItems',
         include: [{ model: db.ShopInventory }]
       }]
     });
@@ -181,6 +184,7 @@ router.get('/my-orders', isAuthenticated, async (req, res) => {
       where: whereClause,
       include: [{
         model: db.OrderItem,
+        as: 'OrderItems',
         include: [{
           model: db.ShopInventory,
           include: [{ model: db.Scroll }]
@@ -208,6 +212,7 @@ router.get('/my-orders/:id', isAuthenticated, async (req, res) => {
       },
       include: [{
         model: db.OrderItem,
+        as: 'OrderItems',
         include: [{
           model: db.ShopInventory,
           include: [
@@ -272,36 +277,51 @@ router.post('/', isAuthenticated, async (req, res) => {
       });
     }
 
-    const order = await db.Order.create({
-      customer_id: req.user.user_id,
-      total_amount: totalAmount,
-      status: 'Pending'
-    });
+    console.log('Creating order for user:', req.user && req.user.user_id, 'totalAmount:', totalAmount, 'orderItems:', orderItems);
 
-    for (const item of orderItems) {
-      await db.OrderItem.create({
-        order_id: order.order_id,
-        ...item
-      });
-    }
+    // Use transaction to ensure atomicity
+    const sequelize = db.sequelize;
+    const result = await sequelize.transaction(async (t) => {
+      const order = await db.Order.create({
+        customer_id: req.user.user_id,
+        total_amount: parseFloat(totalAmount.toFixed ? totalAmount.toFixed(2) : totalAmount),
+        status: 'Pending'
+      }, { transaction: t });
 
-    const completeOrder = await db.Order.findByPk(order.order_id, {
-      include: [{
-        model: db.OrderItem,
+      for (const item of orderItems) {
+        await db.OrderItem.create({
+          order_id: order.order_id,
+          shop_inventory_id: item.shop_inventory_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price
+        }, { transaction: t });
+      }
+
+      const completeOrder = await db.Order.findByPk(order.order_id, {
         include: [{
-          model: db.ShopInventory,
-          include: [{ model: db.Scroll }]
-        }]
-      }]
+          model: db.OrderItem,
+          as: 'OrderItems',
+          include: [{
+            model: db.ShopInventory,
+            include: [{ model: db.Scroll }]
+          }]
+        }],
+        transaction: t
+      });
+
+      return completeOrder;
     });
 
     res.status(201).json({
       message: 'Order placed successfully. Waiting for seller approval.',
-      order: completeOrder
+      order: result
     });
 
   } catch (error) {
-    console.error('Error creating order:', error);
+    console.error('Error creating order:', error && error.message ? error.message : error);
+    if (error && error.stack) console.error(error.stack);
+    if (error && error.errors) console.error('Sequelize errors:', error.errors);
+    // Generic error response
     res.status(500).json({ error: 'Error creating order' });
   }
 });
